@@ -1,122 +1,51 @@
-# 🔗 EasyEscrow: Decentralized Freelancer Payment System
+# EasyEscrow — Decentralized Freelancer Payments
 
-EasyEscrow is a blockchain-based escrow system designed to enable secure and trustless payments between clients and freelancers using smart contracts.
+A Solidity smart contract that holds a client's payment in escrow and releases it to a freelancer only after the job is accepted and completed — no middleman.
 
----
-
-## 🚀 Features
-
-- 💰 Secure payment escrow using smart contracts  
-- 🔐 Trustless transaction system (no intermediary required)  
-- 👨‍💻 Client assigns freelancer and deposits funds  
-- ✅ Freelancer accepts and completes the job  
-- 🔓 Automatic payment release after approval  
-- ❌ Job cancellation support  
+**Stack:** Solidity ^0.8 · Remix IDE · MetaMask · Ethereum Sepolia testnet
 
 ---
 
-## 🧠 Tech Stack
+## How it works
 
-- Solidity  
-- Remix IDE  
-- MetaMask  
-- Ethereum Test Network (Sepolia)  
+```
+Client deploys + funds ──► assignFreelancer() ──► Freelancer acceptJob()
+                                                          │
+            releasePayment()  ◄── Client approves ◄── markCompleted()
+                  │
+         ETH sent to freelancer        (cancelJob() refunds the client any time before completion)
+```
 
----
+| Function | Who can call | Rule enforced |
+|---|---|---|
+| `constructor()` *(payable)* | Client | Deposit becomes `jobAmount`; deployer becomes `client` |
+| `assignFreelancer(address)` | Client | Only the client |
+| `acceptJob()` | Freelancer | Only the assigned freelancer |
+| `markCompleted()` | Freelancer | Job must be accepted first |
+| `releasePayment()` | Client | Job must be completed; transfers the full balance to the freelancer |
+| `cancelJob()` | Client | Not allowed after completion; refunds the client |
+| `getBalance()` | Anyone | View function |
 
-## ⚙️ How It Works
+Access control is enforced with `require` checks on `msg.sender`, and state flags (`jobAccepted`, `jobCompleted`) stop functions from being called out of order.
 
-The system follows a secure escrow workflow:
+## Try it (Remix + Sepolia)
 
-1. Client deploys contract and deposits ETH  
-2. Client assigns freelancer address  
-3. Freelancer accepts the job  
-4. Freelancer completes the task  
-5. Client approves completion  
-6. Smart contract releases payment automatically  
+1. Open [Remix IDE](https://remix.ethereum.org) and load `contracts/EasyEscrow.sol`.
+2. Compile with Solidity 0.8.x.
+3. In *Deploy & Run*, choose **Injected Provider – MetaMask** on Sepolia (get test ETH from a faucet).
+4. Enter the job amount in *Value* and deploy from the client account.
+5. Call `assignFreelancer` (client) → switch to the freelancer account → `acceptJob` → `markCompleted` → switch back → `releasePayment`.
 
-👉 This ensures fairness and eliminates third-party dependency :contentReference[oaicite:0]{index=0}  
+## Limitations and next steps
 
----
+- Single job per contract; a factory contract could manage many jobs.
+- No dispute resolution — a third-party arbiter or DAO vote could be added.
+- Uses `transfer`; a production version would use `call` with a reentrancy guard and a pull-payment pattern.
+- No frontend yet; a React + ethers.js UI is planned.
+- No automated tests yet; Hardhat/Foundry tests are planned.
 
-## 🔄 Workflow States
+## Author
 
-- `jobAccepted` → true when freelancer accepts  
-- `jobCompleted` → true when work is done  
-- Payment released only after completion  
+**Shrikar Vidyasagar Gujjeti** — [GitHub](https://github.com/ShrikarGujjeti) · [LinkedIn](https://www.linkedin.com/in/shrikargujjeti/)
 
----
-
-## 📂 Project Structure
-/contracts
-EasyEscrow.sol
-
-/scripts
-deploy.js
-
-README.md
-
----
-
-## ▶️ Setup & Usage
-
-### 1. Open Remix IDE
-https://remix.ethereum.org
-
-### 2. Compile Contract
-- Solidity version: 0.8+
-
-### 3. Connect MetaMask
-- Use Injected Web3  
-- Connect to Sepolia test network  
-
-### 4. Deploy Contract
-- Enter job amount  
-- Deploy using MetaMask  
-
-### 5. Interact with Contract
-- assignFreelancer()  
-- acceptJob()  
-- markCompleted()  
-- releasePayment()  
-
----
-
-## 📸 Demo
-
-> Add screenshots from Remix showing:
-- Contract deployment  
-- Freelancer assignment  
-- Payment release  
-
-(Your report already has these screenshots — use them) :contentReference[oaicite:1]{index=1}  
-i have a report in the files please refer to it
----
-
-## ⚠️ Limitations
-
-- No frontend UI (contract-only system)  
-- Requires MetaMask and test ETH  
-- No dispute resolution mechanism  
-
----
-
-## 🚀 Future Improvements
-
-- Web-based frontend (React + Web3.js)  
-- Multi-user system  
-- Dispute resolution mechanism  
-- Support for multiple contracts  
-
----
-
-## 👨‍💻 Author
-
-Shrikar Vidyasagar Gujjeti  
-GitHub: https://github.com/ShrikarGujjeti  
-
----
-
-## ⭐ Support
-
-If you found this useful, consider giving it a ⭐!
+License: MIT
